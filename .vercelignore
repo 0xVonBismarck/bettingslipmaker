@@ -1,0 +1,12 @@
+node_modules
+README.md
+.git
+.gitignore
+.env
+.env.local
+.vercel
+.github
+/public/uploads
+/dist-ssr
+api-test-simple.js
+api-client.js 

@@ -13,6 +13,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const isVercel = process.env.VERCEL === '1';
 
 // Middleware
 app.use(cors());
@@ -25,7 +26,7 @@ let viteProcess = null;
 
 // Start Vite dev server if not in production
 function startViteServer() {
-  if (process.env.NODE_ENV !== 'production' && !viteProcess) {
+  if (process.env.NODE_ENV !== 'production' && !viteProcess && !isVercel) {
     viteProcess = spawn('npm', ['run', 'dev'], {
       stdio: 'inherit',
       shell: true
@@ -46,11 +47,19 @@ async function generateBettingSlipImage(slipData) {
   
   let browser = null;
   try {
-    // Launch a new browser instance
-    browser = await puppeteer.launch({
+    // Launch a new browser instance with settings for Vercel
+    const options = {
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    };
+    
+    // Add Chrome executable path for Vercel
+    if (isVercel) {
+      options.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || 
+                              '/usr/bin/chromium-browser';
+    }
+    
+    browser = await puppeteer.launch(options);
     
     // Create a new page
     const page = await browser.newPage();
@@ -59,15 +68,20 @@ async function generateBettingSlipImage(slipData) {
     await page.setViewport({ width: 800, height: 800 });
     
     // Determine base URL
-    const baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'http://localhost:3001' 
-      : 'http://localhost:5173';
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NODE_ENV === 'production' 
+        ? 'http://localhost:3001' 
+        : 'http://localhost:5173';
     
     // Create query string from slipData
     const queryParams = new URLSearchParams();
     Object.entries(slipData).forEach(([key, value]) => {
       queryParams.append(key, value);
     });
+    
+    // Add autoCapture flag for API
+    queryParams.append('autoCapture', 'true');
     
     // Navigate to the page
     await page.goto(`${baseUrl}?${queryParams.toString()}`, { 
@@ -156,23 +170,28 @@ app.get('/api/ping', (req, res) => {
   res.json({ message: 'Betting slip server is running' });
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  startViteServer();
-});
+// Only start the server when not on Vercel (serverless)
+if (!isVercel) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    startViteServer();
+  });
+  
+  // Handle shutdown
+  process.on('SIGINT', () => {
+    if (viteProcess) {
+      viteProcess.kill();
+    }
+    process.exit();
+  });
+  
+  process.on('SIGTERM', () => {
+    if (viteProcess) {
+      viteProcess.kill();
+    }
+    process.exit();
+  });
+}
 
-// Handle shutdown
-process.on('SIGINT', () => {
-  if (viteProcess) {
-    viteProcess.kill();
-  }
-  process.exit();
-});
-
-process.on('SIGTERM', () => {
-  if (viteProcess) {
-    viteProcess.kill();
-  }
-  process.exit();
-}); 
+// Export the Express app for Vercel
+export default app; 
