@@ -15,6 +15,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vercel/chrome": "^1.0.0",
     "axios": "^1.8.4",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
@@ -23,6 +24,7 @@
     "html2canvas": "^1.4.1",
     "morgan": "^1.10.0",
     "puppeteer": "^24.6.0",
+    "puppeteer-core": "^24.6.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
