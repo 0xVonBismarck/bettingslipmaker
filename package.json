@@ -9,8 +9,8 @@
     "api-test": "node api-client.js",
     "api-test-simple": "node api-test-simple.js",
     "start": "npm run build && NODE_ENV=production node server.js",
-    "build": "tsc -b && vite build",
-    "vercel-build": "tsc -b && vite build",
+    "build": "vite build",
+    "vercel-build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

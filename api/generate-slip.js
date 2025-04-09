@@ -1,6 +1,3 @@
-import puppeteer from 'puppeteer-core';
-import chromium from 'chrome-aws-lambda';
-
 export default async function handler(req, res) {
   // Only support POST requests
   if (req.method !== 'POST') {
