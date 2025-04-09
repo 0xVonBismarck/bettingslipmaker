@@ -24,25 +24,13 @@ export default async function handler(req, res) {
     
     console.log('All required parameters present');
     
-    // Generate the image
-    try {
-      const imageBuffer = await generateBettingSlipImage(slipData, req);
-      
-      if (!imageBuffer || imageBuffer.length === 0) {
-        console.error('Generated image is empty');
-        return res.status(500).json({ error: 'Generated image is empty' });
-      }
-      
-      console.log('Image generated successfully, size:', imageBuffer.length, 'bytes');
-      
-      // Return the image
-      res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Content-Disposition', 'inline; filename="betting-slip.png"');
-      return res.status(200).send(imageBuffer);
-    } catch (genError) {
-      console.error('Error during image generation:', genError);
-      return res.status(500).json({ error: 'Failed to generate betting slip image', details: genError.message });
-    }
+    // For now, return a success response without generating an image
+    return res.status(200).json({
+      message: 'Betting slip data received successfully',
+      data: slipData,
+      timestamp: new Date().toISOString(),
+      note: 'Image generation is not implemented in this version'
+    });
   } catch (error) {
     console.error('Unexpected error handling generate-slip request:', error);
     return res.status(500).json({ error: 'Server error processing request', details: error.message });
