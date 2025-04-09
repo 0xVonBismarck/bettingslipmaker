@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer-core';
-import chrome from '@vercel/chrome';
+import chromium from 'chrome-aws-lambda';
 
 export default async function handler(req, res) {
   // Only support POST requests
@@ -55,11 +55,13 @@ async function generateBettingSlipImage(slipData, req) {
   
   let browser = null;
   try {
-    // Launch browser using Vercel's chrome package
+    // Launch browser using chrome-aws-lambda
     browser = await puppeteer.launch({
-      executablePath: chrome.executablePath,
-      args: chrome.args,
-      headless: chrome.headless,
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
     });
     
     // Create a new page

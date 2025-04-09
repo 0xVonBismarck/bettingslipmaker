@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from 'chrome-aws-lambda';
 import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
@@ -47,17 +48,19 @@ async function generateBettingSlipImage(slipData) {
   
   let browser = null;
   try {
-    // Launch a new browser instance with settings for Vercel
-    const options = {
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    };
-    
-    // Add Chrome executable path for Vercel
-    if (isVercel) {
-      options.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || 
-                              '/usr/bin/chromium-browser';
-    }
+    // Launch browser with appropriate settings
+    const options = isVercel 
+      ? {
+          args: chromium.args,
+          defaultViewport: chromium.defaultViewport,
+          executablePath: await chromium.executablePath,
+          headless: chromium.headless,
+          ignoreHTTPSErrors: true,
+        }
+      : {
+          headless: 'new',
+          args: ['--no-sandbox', '--disable-setuid-sandbox']
+        };
     
     browser = await puppeteer.launch(options);
     
